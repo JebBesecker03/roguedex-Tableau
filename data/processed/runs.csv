@@ -1,3 +1,7 @@
 run_id,start_timestamp,end_timestamp,result,final_stage,final_boss,starter_species,total_battles,session_date,session_day_of_week,time_of_day_bucket,run_tag
 run_2026-01-29T00:23:01.220Z,2026-01-29T00:23:01.220000,2026-01-29T00:24:20.320000,Unknown,,,,1,2026-01-29,4,Late Night,
 run_2026-01-29T00:44:26.135Z,2026-01-29T00:44:26.135000,2026-01-29T00:45:50.966000,Unknown,,,,5,2026-01-29,4,Late Night,
+run_2026-01-29T01:31:37.637Z,2026-01-29T01:31:37.637000,2026-01-29T01:32:41.283000,Unknown,,,,2,2026-01-29,4,Late Night,
+run_2026-01-29T01:32:53.717Z,2026-01-29T01:32:53.717000,2026-01-29T01:36:44.115000,Unknown,,,,7,2026-01-29,4,Late Night,
+run_2026-01-29T02:11:02.713Z,2026-01-29T02:11:02.713000,2026-01-29T02:11:54.781000,Unknown,,,,1,2026-01-29,4,Late Night,
+run_2026-01-29T02:15:02.421Z,2026-01-29T02:15:02.421000,2026-01-29T02:17:56.809000,Unknown,,,,7,2026-01-29,4,Late Night,

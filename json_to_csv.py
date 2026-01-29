@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 """
-Simple ETL: Pokerogue RogueDex JSON -> runs.csv & encounters.csv
+Simple ETL: Pokerogue RogueDex JSON -> runs.csv, encounters.csv & encounter_participants.csv
 
 - Input:  all *.json files in DATA_RAW_DIR
-- Output: runs.csv and encounters.csv in DATA_PROCESSED_DIR
+- Output: runs.csv, encounters.csv, and encounter_participants.csv in DATA_PROCESSED_DIR
 
-Assumed JSON structure per file:
+Assumed JSON structure per file (v1 with team snapshot):
 
 {
   "run": {
@@ -16,7 +16,7 @@ Assumed JSON structure per file:
     "result": "Loss",
     "final_stage": "Gym 4",
     "final_boss": "Gym Leader 4",
-    "starter_species": "Bulbasaur",
+    "starter_species": 1,
     "total_battles": 7,
     "run_tag": "Rain team"
   },
@@ -24,14 +24,18 @@ Assumed JSON structure per file:
     {
       "encounter_id": "run_2026-01-28T21-15-03_000",
       "battle_index": 0,
-      "enemy_species": "Pidgey",
-      "enemy_type1": "Normal",
-      "enemy_type2": "Flying",
+      "enemy_species": 16,
+      "enemy_type1": null,
+      "enemy_type2": null,
       "enemy_level": 5,
       "is_boss": false,
       "encounter_result": "Win",
       "enemy_ended_run": false,
-      "notes": null
+      "notes": null,
+
+      "team_species_ids": [4, 7, 1],
+      "team_levels": [8, 7, 6],
+      "team_size": 3
     },
     ...
   ]
@@ -56,6 +60,7 @@ DATA_PROCESSED_DIR = Path("data/processed")
 
 RUNS_CSV = DATA_PROCESSED_DIR / "runs.csv"
 ENCOUNTERS_CSV = DATA_PROCESSED_DIR / "encounters.csv"
+PARTICIPANTS_CSV = DATA_PROCESSED_DIR / "encounter_participants.csv"  # NEW
 
 
 # ---------- HELPERS ----------
@@ -105,6 +110,7 @@ def main():
 
     run_rows = []
     encounter_rows = []
+    participant_rows = []  # NEW
 
     json_files = sorted(DATA_RAW_DIR.glob("*.json"))
     if not json_files:
@@ -149,13 +155,23 @@ def main():
             "run_tag": run.get("run_tag"),
         })
 
-        # --- ENCOUNTER-LEVEL PROCESSING ---
+        # --- ENCOUNTER-LEVEL + PARTICIPANTS PROCESSING ---
         for idx, enc in enumerate(encounters):
             # Use provided encounter_id or synthesize from run_id + index
             encounter_id = enc.get("encounter_id")
             if not encounter_id:
                 encounter_id = f"{run_id}_{idx:03d}"
 
+            # Team snapshot: arrays of species IDs and levels, plus team_size
+            team_species = enc.get("team_species_ids") or []
+            team_levels = enc.get("team_levels") or []
+            team_size = enc.get("team_size")
+
+            # Helper to safely get index i from a list
+            def _at(lst, i):
+                return lst[i] if i < len(lst) else None
+
+            # Wide encounter row (kept for v1 compatibility)
             encounter_rows.append({
                 "encounter_id": encounter_id,
                 "run_id": run_id,
@@ -168,9 +184,52 @@ def main():
                 "encounter_result": enc.get("encounter_result"),
                 "enemy_ended_run": enc.get("enemy_ended_run"),
                 "notes": enc.get("notes"),
+
+                # Team snapshot fields (wide)
+                "team_size": team_size,
+                "ally1_species_id": _at(team_species, 0),
+                "ally2_species_id": _at(team_species, 1),
+                "ally3_species_id": _at(team_species, 2),
+                "ally4_species_id": _at(team_species, 3),
+                "ally5_species_id": _at(team_species, 4),
+                "ally6_species_id": _at(team_species, 5),
+                "ally1_level": _at(team_levels, 0),
+                "ally2_level": _at(team_levels, 1),
+                "ally3_level": _at(team_levels, 2),
+                "ally4_level": _at(team_levels, 3),
+                "ally5_level": _at(team_levels, 4),
+                "ally6_level": _at(team_levels, 5),
             })
 
-    # Define column order explicitly to match schema_v1
+            # --- NEW: tall participant rows ---
+
+            # Enemy as a participant
+            enemy_species = enc.get("enemy_species")
+            if enemy_species is not None:
+                participant_rows.append({
+                    "encounter_id": encounter_id,
+                    "run_id": run_id,
+                    "side": "enemy",
+                    "slot_index": 0,
+                    "species_id": enemy_species,
+                    "level": enc.get("enemy_level"),
+                })
+
+            # Allies as participants (one row per ally slot)
+            for slot_idx, species_id in enumerate(team_species):
+                if species_id is None:
+                    continue
+                level = team_levels[slot_idx] if slot_idx < len(team_levels) else None
+                participant_rows.append({
+                    "encounter_id": encounter_id,
+                    "run_id": run_id,
+                    "side": "ally",
+                    "slot_index": slot_idx,
+                    "species_id": species_id,
+                    "level": level,
+                })
+
+    # Define column order explicitly to match schema_v1 (with team fields)
     run_fieldnames = [
         "run_id",
         "start_timestamp",
@@ -198,6 +257,28 @@ def main():
         "encounter_result",
         "enemy_ended_run",
         "notes",
+        "team_size",
+        "ally1_species_id",
+        "ally2_species_id",
+        "ally3_species_id",
+        "ally4_species_id",
+        "ally5_species_id",
+        "ally6_species_id",
+        "ally1_level",
+        "ally2_level",
+        "ally3_level",
+        "ally4_level",
+        "ally5_level",
+        "ally6_level",
+    ]
+
+    participant_fieldnames = [  # NEW
+        "encounter_id",
+        "run_id",
+        "side",
+        "slot_index",
+        "species_id",
+        "level",
     ]
 
     # Write runs.csv
@@ -212,8 +293,15 @@ def main():
         writer.writeheader()
         writer.writerows(encounter_rows)
 
+    # Write encounter_participants.csv
+    with PARTICIPANTS_CSV.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=participant_fieldnames)
+        writer.writeheader()
+        writer.writerows(participant_rows)
+
     print(f"Wrote {len(run_rows)} runs to {RUNS_CSV}")
     print(f"Wrote {len(encounter_rows)} encounters to {ENCOUNTERS_CSV}")
+    print(f"Wrote {len(participant_rows)} participants to {PARTICIPANTS_CSV}")
 
 
 if __name__ == "__main__":

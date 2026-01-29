@@ -18,7 +18,7 @@ function startRun() {
     result: null,
     final_stage: null,
     final_boss: null,
-    starter_species: null,
+    starter_species: null,   // will fill from first encounter's party
     total_battles: null,
     run_tag: null
   };
@@ -150,15 +150,17 @@ function appendPokemonArrayToDiv(pokemonArray, arena, message) {
   });
 }
 
-// --- NEW: shared helper to log encounters from any session-like object ---
+// --- Shared helper to log encounters from any session-like object ---
+// Now includes your team data as well
 function logEncounterFromSession(sessionData) {
   if (!currentRun) return;
   if (!sessionData) return;
   if (
     !Array.isArray(sessionData.enemyParty) ||
     sessionData.enemyParty.length === 0
-  )
+  ) {
     return;
+  }
 
   const waveIndex =
     typeof sessionData.waveIndex === "number" ? sessionData.waveIndex : null;
@@ -169,7 +171,21 @@ function logEncounterFromSession(sessionData) {
   }
 
   const firstEnemy = sessionData.enemyParty[0];
-  const pokemonId = Utils.convertPokemonId(firstEnemy.species);
+  const enemyId = Utils.convertPokemonId(firstEnemy.species);
+
+  // Capture your current team
+  const teamArray = Array.isArray(sessionData.party) ? sessionData.party : [];
+  const teamSpeciesIds = teamArray.map((p) =>
+    Utils.convertPokemonId(p.species)
+  );
+  const teamLevels = teamArray.map((p) => p.level || null);
+  const teamSize = teamArray.length;
+
+  // If we have not yet set starter_species, use the first party mon
+  if (!currentRun.starter_species && teamSpeciesIds.length > 0) {
+    currentRun.starter_species = teamSpeciesIds[0];
+  }
+
   const encounterId = `${currentRun.run_id}_${battleIndex
     .toString()
     .padStart(3, "0")}`;
@@ -180,22 +196,31 @@ function logEncounterFromSession(sessionData) {
     "waveIndex:",
     waveIndex,
     "enemy_species:",
-    pokemonId,
+    enemyId,
     "enemy_level:",
-    firstEnemy.level
+    firstEnemy.level,
+    "team_species_ids:",
+    teamSpeciesIds,
+    "team_levels:",
+    teamLevels
   );
 
   encounterBuffer.push({
     encounter_id: encounterId,
     battle_index: battleIndex,
-    enemy_species: pokemonId, // numeric ID for now
+    enemy_species: enemyId, // numeric ID for now
     enemy_type1: null,
     enemy_type2: null,
     enemy_level: firstEnemy.level || null,
     is_boss: false,
     encounter_result: null,
     enemy_ended_run: false,
-    notes: null
+    notes: null,
+
+    // NEW: your team snapshot for this encounter
+    team_species_ids: teamSpeciesIds, // [speciesId1, speciesId2, ...]
+    team_levels: teamLevels,          // [level1, level2, ...]
+    team_size: teamSize               // number of mons in party
   });
 
   battleIndex++;

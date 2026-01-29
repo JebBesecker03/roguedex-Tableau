@@ -1,0 +1,39 @@
+{
+  "run": {
+    "run_id": "run_2026-01-29T01:31:37.637Z",
+    "start_timestamp": "2026-01-29T01:31:37.637Z",
+    "end_timestamp": "2026-01-29T01:32:41.283Z",
+    "result": "Unknown",
+    "final_stage": null,
+    "final_boss": null,
+    "starter_species": null,
+    "total_battles": 2,
+    "run_tag": null
+  },
+  "encounters": [
+    {
+      "encounter_id": "run_2026-01-29T01:31:37.637Z_000",
+      "battle_index": 0,
+      "enemy_species": 268,
+      "enemy_type1": null,
+      "enemy_type2": null,
+      "enemy_level": 7,
+      "is_boss": false,
+      "encounter_result": null,
+      "enemy_ended_run": false,
+      "notes": null
+    },
+    {
+      "encounter_id": "run_2026-01-29T01:31:37.637Z_001",
+      "battle_index": 1,
+      "enemy_species": 509,
+      "enemy_type1": null,
+      "enemy_type2": null,
+      "enemy_level": 6,
+      "is_boss": false,
+      "encounter_result": null,
+      "enemy_ended_run": false,
+      "notes": null
+    }
+  ]
+}
