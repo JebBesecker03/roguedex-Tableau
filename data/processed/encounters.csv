@@ -1,0 +1,7 @@
+encounter_id,run_id,battle_index,enemy_species,enemy_type1,enemy_type2,enemy_level,is_boss,encounter_result,enemy_ended_run,notes
+run_2026-01-29T00:23:01.220Z_000,run_2026-01-29T00:23:01.220Z,0,167,,,2,False,,False,
+run_2026-01-29T00:44:26.135Z_000,run_2026-01-29T00:44:26.135Z,0,926,,,3,False,,False,
+run_2026-01-29T00:44:26.135Z_001,run_2026-01-29T00:44:26.135Z,1,21,,,2,False,,False,
+run_2026-01-29T00:44:26.135Z_002,run_2026-01-29T00:44:26.135Z,2,926,,,3,False,,False,
+run_2026-01-29T00:44:26.135Z_003,run_2026-01-29T00:44:26.135Z,3,401,,,3,False,,False,
+run_2026-01-29T00:44:26.135Z_004,run_2026-01-29T00:44:26.135Z,4,163,,,3,False,,False,

@@ -1,0 +1,3 @@
+run_id,start_timestamp,end_timestamp,result,final_stage,final_boss,starter_species,total_battles,session_date,session_day_of_week,time_of_day_bucket,run_tag
+run_2026-01-29T00:23:01.220Z,2026-01-29T00:23:01.220000,2026-01-29T00:24:20.320000,Unknown,,,,1,2026-01-29,4,Late Night,
+run_2026-01-29T00:44:26.135Z,2026-01-29T00:44:26.135000,2026-01-29T00:45:50.966000,Unknown,,,,5,2026-01-29,4,Late Night,
